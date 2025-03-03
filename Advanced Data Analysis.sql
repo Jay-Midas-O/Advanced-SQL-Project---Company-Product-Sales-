@@ -5,8 +5,8 @@
 USE DataWarehouseAnalytics
 --- Sales Perormance Over Time (Daily) ------------
 SELECT 
-order_date,
-SUM(sales_amount) Total_Sales
+	order_date,
+	SUM(sales_amount) Total_Sales
 FROM [gold.fact_sales]
 WHERE order_date IS NOT NULL
 GROUP BY order_date
@@ -14,9 +14,9 @@ ORDER BY order_date
 
 --- Sales Perormance Over Time (Yearly) ------------
 SELECT
-YEAR(order_date),
-SUM(sales_amount) TotalSales,
-COUNT(DISTINCT customer_key) AS Total_Customers
+	YEAR(order_date),
+	SUM(sales_amount) TotalSales,
+	COUNT(DISTINCT customer_key) AS Total_Customers
 FROM [gold.fact_sales]
 WHERE order_date IS NOT NULL
 GROUP BY YEAR(order_date)
@@ -25,8 +25,8 @@ ORDER BY TotalSales DESC
 ---------------------------------------------- CUMULATIVE ANALYSIS ----------------------------------------------------------------
 ----- Calculate the total sale per month
  SELECT
- MONTH(order_date) Order_Months,
- SUM(sales_amount) Total_Sales
+	 MONTH(order_date) Order_Months,
+	 SUM(sales_amount) Total_Sales
  FROM [gold.fact_sales]
  WHERE order_date IS NOT NULL
  GROUP BY MONTH(order_date)
@@ -34,16 +34,16 @@ ORDER BY TotalSales DESC
 
 ----- Running total of sales over time & Running Average
 SELECT 
-Order_Day,
-Total_sales,
-SUM(Total_sales) OVER(PARTITION BY Order_Day ORDER BY Order_Day) AS running_total_sales,
-AVG(Avg_Price) OVER(PARTITION BY Order_Day ORDER BY Order_Day) AS moving_average_sales
+	Order_Day,
+	Total_sales,
+	SUM(Total_sales) OVER(PARTITION BY Order_Day ORDER BY Order_Day) AS running_total_sales,
+	AVG(Avg_Price) OVER(PARTITION BY Order_Day ORDER BY Order_Day) AS moving_average_sales
 FROM 
 (
 	SELECT
-	order_date AS Order_Day,
-	SUM(sales_amount) AS Total_Sales, 
-	AVG(price) AS Avg_Price
+		order_date AS Order_Day,
+		SUM(sales_amount) AS Total_Sales, 
+		AVG(price) AS Avg_Price
 	FROM [gold.fact_sales]
 	WHERE order_date IS NOT NULL
 	GROUP BY 
@@ -56,9 +56,9 @@ FROM
 ------ to both its Average Sales Performance and the Previous Years Sales
 
 SELECT 
-YEAR(f.order_date) AS Order_Year,
-p.product_name,
-SUM(f.sales_amount) AS Current_Sales
+	YEAR(f.order_date) AS Order_Year,
+	p.product_name,
+	SUM(f.sales_amount) AS Current_Sales
 FROM [gold.fact_sales] f
 LEFT JOIN [gold.products] p
 ON p.product_key=f.product_key
@@ -71,9 +71,9 @@ p.product_name
 ------ USING CTE---------
 WITH yearly_product_sales AS (
 SELECT 
-YEAR(f.order_date) AS Order_Year,
-p.product_name AS Product_Name,
-SUM(f.sales_amount) AS Current_Sales
+	YEAR(f.order_date) AS Order_Year,
+	p.product_name AS Product_Name,
+	SUM(f.sales_amount) AS Current_Sales
 FROM [gold.fact_sales] f
 LEFT JOIN [gold.products] p
 ON p.product_key=f.product_key
@@ -83,11 +83,11 @@ YEAR(f.order_date),
 p.product_name
 )
 SELECT 
-Order_Year,
-Product_Name,
-Current_Sales,
-AVG(Current_Sales) OVER(PARTITION BY Product_Name) AS Avg_Sales,
-Current_Sales - AVG(Current_Sales) OVER(PARTITION BY Product_Name) AS Difference_Sales,
+	Order_Year,
+	Product_Name,
+	Current_Sales,
+	AVG(Current_Sales) OVER(PARTITION BY Product_Name) AS Avg_Sales,
+	Current_Sales - AVG(Current_Sales) OVER(PARTITION BY Product_Name) AS Difference_Sales,
 CASE 
 	 WHEN Current_Sales - AVG(Current_Sales) OVER(PARTITION BY Product_Name) > 0 THEN 'Above Average'
 	 WHEN Current_Sales - AVG(Current_Sales) OVER(PARTITION BY Product_Name) < 0 THEN 'Below Average'
@@ -167,20 +167,20 @@ ORDER BY Yearly_Orders DESC, Current_Orders DESC
 
 WITH category_sales AS (
 SELECT 
-p.category AS Category,
-SUM(f.sales_amount) AS Total_Sales,
-RANK() OVER(ORDER BY SUM(f.sales_amount) DESC) AS Top_Performer
+	p.category AS Category,
+	SUM(f.sales_amount) AS Total_Sales,
+	RANK() OVER(ORDER BY SUM(f.sales_amount) DESC) AS Top_Performer
 FROM [gold.fact_sales] f
 LEFT JOIN [gold.products] p
 ON p.product_key = f.product_key
 GROUP BY p.category)
 
 SELECT 
-Category,
-Total_Sales,
-Top_Performer,
-SUM(Total_Sales) OVER() AS Overall_Sales,
-CONCAT(ROUND(CAST(Total_Sales AS FLOAT) / SUM(Total_Sales) OVER() * 100,2), '%') AS Percentage_of_total
+	Category,
+	Total_Sales,
+	Top_Performer,
+	SUM(Total_Sales) OVER() AS Overall_Sales,
+	CONCAT(ROUND(CAST(Total_Sales AS FLOAT) / SUM(Total_Sales) OVER() * 100,2), '%') AS Percentage_of_total
 FROM category_sales
 
 
@@ -216,19 +216,19 @@ ORDER BY Total_products DESC
 
 WITH customer_spending AS (
 SELECT
-c.customer_key,
-SUM(f.sales_amount) AS total_sales,
-MIN(f.order_date) AS first_order,
-MAX(f.order_date) AS last_order,
-DATEDIFF (month, MIN(order_date), MAX(order_date)) AS lifespan
+	c.customer_key,
+	SUM(f.sales_amount) AS total_sales,
+	MIN(f.order_date) AS first_order,
+	MAX(f.order_date) AS last_order,
+	DATEDIFF (month, MIN(order_date), MAX(order_date)) AS lifespan
 FROM [gold.fact_sales] f
 LEFT JOIN [gold.customers] c
 ON c.customer_key = f.customer_key
 GROUP BY c.customer_key)
 
 SELECT 
-Customer_Segment,
-COUNT(customer_key) AS total_customers
+	Customer_Segment,
+	COUNT(customer_key) AS total_customers
 FROM (
 		SELECT 
 		customer_key,
@@ -275,15 +275,15 @@ WITH basic_query AS (
 1) Base Query: Retrieves core columns from tables
 --------------------------------------------------------------------------------------------------------------*/
 SELECT
-f.order_number,
-f.product_key,
-f.order_date,
-f.sales_amount,
-f.quantity,
-c.customer_key,
-c.customer_number,
-CONCAT(c.first_name, ' ', c.last_name) AS Customer_name,
-DATEDIFF(YEAR, c.birthdate, GETDATE()) AS Age
+	f.order_number,
+	f.product_key,
+	f.order_date,
+	f.sales_amount,
+	f.quantity,
+	c.customer_key,
+	c.customer_number,
+	CONCAT(c.first_name, ' ', c.last_name) AS Customer_name,
+	DATEDIFF(YEAR, c.birthdate, GETDATE()) AS Age
 FROM [gold.fact_sales] f
 LEFT JOIN [gold.customers] c
 ON c.customer_key=f.customer_key
@@ -295,29 +295,30 @@ WHERE order_date IS NOT NULL)
 2) Customer Aggregations: Summarizes key metrics at the customer level
 --------------------------------------------------------------------------------------------------------------*/
 SELECT 
-customer_key,
-customer_number,
-Customer_name,
-Age,
-COUNT (DISTINCT order_number) AS total_orders,
-SUM(sales_amount) AS total_sales,
-SUM(quantity) AS total_quantity,
-COUNT(DISTINCT product_key) AS total_products,
-MAX(order_date) AS last_order_date,
-DATEDIFF(MONTH, MIN(order_date), MAX(order_date)) AS lifespan
+	customer_key,
+	customer_number,
+	Customer_name,
+	Age,
+	COUNT (DISTINCT order_number) AS total_orders,
+	SUM(sales_amount) AS total_sales,
+	SUM(quantity) AS total_quantity,
+	COUNT(DISTINCT product_key) AS total_products,
+	MAX(order_date) AS last_order_date,
+	DATEDIFF(MONTH, MIN(order_date), MAX(order_date)) AS lifespan
 FROM basic_query 
 GROUP BY
-customer_key,
-customer_number,
-Customer_name,
-Age)
+	customer_key,
+	customer_number,
+	Customer_name,
+	Age
+)
 
 
 SELECT 
-customer_key,
-customer_number,
-Customer_name,
-Age,
+	customer_key,
+	customer_number,
+	Customer_name,
+	Age,
 CASE 
 	WHEN Age< 20 THEN 'Under 20'
 	WHEN Age BETWEEN 20 AND 29 THEN '20-29'
@@ -331,13 +332,13 @@ CASE
 	WHEN lifespan >=12 AND total_sales <= 5000 THEN 'Regular'
 	ELSE 'New'
 END AS Customer_Segment,
-last_order_date,
-DATEDIFF(MONTH, last_order_date, GETDATE()) AS Recency,
-total_orders,
-total_sales,
-total_quantity,
-total_products,
-lifespan,
+	last_order_date,
+	DATEDIFF(MONTH, last_order_date, GETDATE()) AS Recency,
+	total_orders,
+	total_sales,
+	total_quantity,
+	total_products,
+	lifespan,
 --- Compute average order value (AOV)
 CASE WHEN total_sales = 0 THEN 0  --- Just to eliminate changes of generating error (Dividing by zero)
 	ELSE total_sales / total_orders 
@@ -420,39 +421,39 @@ SELECT
 	ROUND(AVG(CAST(sales_amount AS FLOAT) / NULLIF (quantity, 0)),1) AS avg_selling_price
 FROM product_basic_query 
 GROUP BY
-product_id,
-product_name,
-category,
-subcategory,
-cost
+	product_id,
+	product_name,
+	category,
+	subcategory,
+	cost
 )
 
 SELECT 
-product_id,
-category,
-subcategory,
-product_name,
-total_sales_p,
+	product_id,
+	category,
+	subcategory,
+	product_name,
+	total_sales_p,
 
 CASE
 	WHEN total_sales_p > 50000 THEN 'High-Performer'
 	WHEN total_sales_p >= 10000 THEN 'Mid-Range'
 	ELSE 'Low-Performers'
 END AS Product_Segments,
-avg_selling_price,
-cost,
-total_orders_p,
-sales_ranking,
-total_quantity_sold_p,
-total_unique_customers,
+	avg_selling_price,
+	cost,
+	total_orders_p,
+	sales_ranking,
+	total_quantity_sold_p,
+	total_unique_customers,
 
 /* -----------------------------------------------------------------------------------------------------------
 3) Final Query: Calculate Valuable KPIs
 --------------------------------------------------------------------------------------------------------------*/
 
-last_order_date,
-DATEDIFF(MONTH, last_order_date, GETDATE()) AS Recency,
-lifespan_p,
+	last_order_date,
+	DATEDIFF(MONTH, last_order_date, GETDATE()) AS Recency,
+	lifespan_p,
 
 --- Compute average product order value (AOV)
 CASE WHEN total_sales_p = 0 THEN 0  --- Just to eliminate changes of generating error (Dividing by zero)
